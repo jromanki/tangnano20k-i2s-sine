@@ -2,8 +2,9 @@ module main #(
     // Num of click cycle per led toggle.
     parameter integer DIV = (180_000_000 / 2)
 ) (
-    input      ext_clk,
-    output reg led       // Active low
+    input       ext_clk,
+    output reg  led,       // Active low
+    output      bck
 );
 
   // ---- PLL, 27Mhz -> 180Mhz
@@ -23,13 +24,15 @@ module main #(
 
   reg [31:0] blink_counter;
 
-  always @(posedge sys_clk) begin
-    if (blink_counter < (DIV - 1)) begin
-      blink_counter <= blink_counter + 1;
-    end else begin
-      blink_counter <= 0;
-      led <= ~led;
-    end
-  end
+  // always @(posedge sys_clk) begin
+  //   if (blink_counter < (DIV - 1)) begin
+  //     blink_counter <= blink_counter + 1;
+  //   end else begin
+  //     blink_counter <= 0;
+  //     led <= ~led;
+  //   end
+  // end
+
+  assign bck = sys_clk;
 
 endmodule
