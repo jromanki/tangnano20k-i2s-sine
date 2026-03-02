@@ -16,18 +16,19 @@ module top #(
     //   apio format pll.v
     //
     wire sys_clk;
-    wire sys_lrck;
-    wire sys_dout;
-    wire sys_sync_tick;
-    wire sys_bck;
-    reg [31:0] data_l;
-    reg [31:0] data_r;
 
     pll pll (
         .clock_in(ext_clk),
         .clock_out(sys_clk),
         .locked()
     );
+
+    wire sys_lrck;
+    wire sys_dout;
+    wire sys_sync_tick;
+    wire sys_bck;
+    reg [31:0] data_l;
+    reg [31:0] data_r;
 
     i2s_transmit i2s (
         .clk(sys_clk),
@@ -41,7 +42,33 @@ module top #(
         .sync_tick(sys_sync_tick)
     );
 
+    reg sync_tick_delayed;
+    reg [7:0] sample_cnt;
 
+    always @ (posedge sys_clk) begin
+        if (btn) begin
+            sample_cnt <= 0;
+            data_l <= 32'h0000_0000;
+            data_r <= 32'h0000_0000;
+            sync_tick_delayed <= 0;
+        end
+        else begin
+            // 1-cycle delayed
+            sync_tick_delayed <= sys_sync_tick;
+            // rising edge detection
+            if (sys_sync_tick && !sync_tick_delayed) begin
+                if (sample_cnt < 200 - 1) begin
+                    sample_cnt <= sample_cnt + 1;
+                end
+                else begin
+                    // every few sync_ticks flip all bits
+                    data_l <= data_l ^ 32'hFFFF_FFFF;
+                    data_r <= data_r ^ 32'hFFFF_FFFF;
+                    sample_cnt <= 0;
+                end
+            end
+        end
+    end
 
     assign bck = sys_bck;
     assign lrck = sys_lrck;
