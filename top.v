@@ -1,6 +1,6 @@
 module top #(
     // Num of click cycle per led toggle.
-    parameter integer DIV = 200
+    parameter integer DIV = 100
 ) (
     input       ext_clk,
     input       btn,
@@ -52,7 +52,7 @@ module top #(
 
     reg sync_tick_reg;
     reg sync_tick_delayed;
-    reg [7:0] sample_cnt;
+    reg [8:0] sample_cnt;
 
     always @ (posedge sys_clk) begin
         if (btn) begin
@@ -66,27 +66,14 @@ module top #(
         else begin
             // if both words transmitted
             if (sys_sync_tick) begin
-                if (sample_cnt < DIV - 1) begin
-                    sample_cnt <= sample_cnt + 1;
-                end
-                else begin
-                    // every few sync_ticks flip all bits
-                    if (data_l == `MIN_VAL) begin
-                        data_l <= `MAX_VAL;
-                        data_r <= `MAX_VAL;
-                    end
-                    else begin
-                        data_l <= `MIN_VAL;
-                        data_r <= `MIN_VAL;
-                    end
-                    
-                    sample_cnt <= 0;
-                end
+                data_l <= prom_data;
+                data_r <= prom_data;
+                sample_cnt <= sample_cnt + 1;
             end
         end
     end
 
-    wire [15:0] prom_data;
+    wire [31:0] prom_data;
 
     wave_rom wave(
         .clk(sys_clk),
