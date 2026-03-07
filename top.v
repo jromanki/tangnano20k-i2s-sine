@@ -86,6 +86,16 @@ module top #(
         end
     end
 
+    wire [15:0] prom_data;
+
+    wave_rom wave(
+        .clk(sys_clk),
+        .reset(btn),
+        .ad(sample_cnt),
+        .data(prom_data)
+    );	
+
+
     assign sck = sys_clk;
     assign bck = sys_bck;
     assign lrck = sys_lrck;
