@@ -11,17 +11,9 @@ BIT_DEPTH = 32
 TOTAL_SAMPLE_NUM = int(LINES * (BITS_IN_LINE / BIT_DEPTH))
 
 def gen_sine_samples():
-    samples = np.zeros(TOTAL_SAMPLE_NUM, dtype=object)
-
-    for sample_num in range(TOTAL_SAMPLE_NUM):
-        samples[sample_num] = np.sin(np.pi / 2 * sample_num / TOTAL_SAMPLE_NUM)
-
-    if DEBUG:
-        xpoints = range(0, TOTAL_SAMPLE_NUM)
-        ypoints = samples
-        plt.plot(xpoints, ypoints, "*--")
-        plt.show()
-
+    # generate np array wit 1/4 sine period
+    t = np.linspace(0, np.pi/2, TOTAL_SAMPLE_NUM, endpoint=False, dtype=np.float64)
+    samples = np.sin(t)
     return samples
 
 def int_to_2s_comp_str(num):
@@ -29,15 +21,16 @@ def int_to_2s_comp_str(num):
     return f"{temp:0{BIT_DEPTH}b}"
 
 def samples_float_to_2s_comp_str(samples):
-    max_val = (2**(BIT_DEPTH - 1)) - 1
+    # Use the actual max positive value for 32-bit signed
+    max_pos = np.float64((1 << (BIT_DEPTH - 1)) - 1)
 
-    for sample_num in range(TOTAL_SAMPLE_NUM):
-        sample = samples[sample_num]
-        sample = int(round(sample * max_val))
-        sample = int_to_2s_comp_str(sample)
-        samples[sample_num] = sample
+    bin_samples = []
+    for s in samples:
+        # Proper rounding to the nearest 32-bit integer
+        val = int(np.round(s * max_pos))
+        bin_samples.append(int_to_2s_comp_str(val))
     
-    return samples
+    return bin_samples
 
 def addr_to_hex_str(addr: int):
     return f'{addr:0>2X}'
@@ -64,7 +57,9 @@ def create_lines():
             sample = bin_samples[line_num * samples_in_line + line_sample_num]
             line_data.append(bin_str_to_hex_str(sample))
 
-        data_str = ''.join(line_data[::-1])
+        # print(line_data)
+        data_str = ''.join(reversed(line_data))
+
 
         lines += f"      defparam rom.INIT_RAM_{addr_to_hex_str(line_num)} = 256'h{data_str};\n"
     

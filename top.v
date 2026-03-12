@@ -12,19 +12,14 @@ module top #(
 
     `define MAX_VAL 32'h7FFFFFFF
     `define MIN_VAL 32'h80000000
-    // `define MAX_VAL 32'hFFFFFFFF
-    // `define MIN_VAL 32'h00000000
-    // `define MAX_VAL 32'b11111111_11111111_11111111_11111111
-    // `define MIN_VAL 32'b00000000_00000000_00000000_00000000
 
-    // ---- PLL, 27Mhz -> 180Mhz
+    wire sys_clk;
+    // ---- PLL, 27Mhz
     //
     // Generated using the commands:
     //   apio raw -- gowin_pll -d "GW2A-18 C8/I7" -i 27 -o 180 -f pll.v
     //   apio format pll.v
     //
-    wire sys_clk;
-
     pll pll (
         .clock_in(ext_clk),
         .clock_out(sys_clk),

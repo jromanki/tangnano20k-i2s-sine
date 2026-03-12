@@ -1,7 +1,7 @@
 module i2s_transmit # (
     parameter integer DATA_WIDTH = 32,
     // parameter integer FS = (192 / 2)
-    parameter integer FS = 192
+    parameter integer FS = 256
     )(
     input clk,
     input rst,
@@ -50,14 +50,14 @@ module i2s_transmit # (
                 end
 
                 // after completing right word transfer signalize
-                if (lr_word && (clk_counter == (DATA_WIDTH * 2))) begin
+                if (lr_word && (clk_counter == (DATA_WIDTH * 4))) begin
                     right_done <= 1;
                 end
                 else begin
                     right_done <= 0;
                 end
 
-                if (div_3_counter < 2 - 1) begin
+                if (div_3_counter < 3 - 1) begin
                     div_3_counter <= div_3_counter + 1;
 
                 end

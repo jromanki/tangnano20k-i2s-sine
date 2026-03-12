@@ -8,26 +8,25 @@ module sine_lookup(
     reg [8:0] lookup_addr;
     wire [31:0] prom_data;
     reg [31:0] full_data;
-
-    reg addr10_delayed1; 
-    reg addr10_delayed2;
+    reg [4:0] counter;
 
     always @(posedge clk) begin
         if (addr[9]) begin
-            lookup_addr <= ~addr[8:0];
+            lookup_addr[8:0] <= ~addr[8:0];
         end
         else begin
-            lookup_addr <= addr[8:0];
+            lookup_addr[8:0] <= addr[8:0];
         end
 
-        addr10_delayed1 <= addr[10];
-        addr10_delayed2 <= addr10_delayed1;
+        counter <= counter + 1;
 
-        if (addr10_delayed2) begin
-            full_data <= ~prom_data + 1;
-        end
-        else begin
-            full_data <= prom_data;
+        if (counter == 15) begin
+            if (addr[10]) begin
+                full_data <= -prom_data;
+            end
+            else begin
+                full_data <= prom_data;
+            end
         end
     end
 
