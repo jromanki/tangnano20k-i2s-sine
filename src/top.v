@@ -7,7 +7,9 @@ module top #(
     output      sck,
     output      bck,
     output      lrck,
-    output      dout
+    output      dout,
+
+    output      test_1,
 );
 
     `define MAX_VAL 32'h7FFFFFFF
@@ -45,22 +47,25 @@ module top #(
         .sync_tick(sys_sync_tick)
     );
 
-    reg sync_tick_reg;
-    reg [10:0] sync_tick_delayed;
+    reg sync_tick_last;
+    reg dac_ready;
     reg [10:0] sample_cnt;
 
     always @ (posedge sys_clk) begin
+
+        /* make dac_ready detect rising edge of sync_tick */
+        sync_tick_last <= sys_sync_tick;
+        dac_ready <= (sys_sync_tick && !sync_tick_last);
+
         if (btn) begin
             sample_cnt <= 0;
-            data_l <= `MIN_VAL;
-            data_r <= `MIN_VAL;
-            sync_tick_delayed <= 0;
-            sync_tick_reg <= 0;
-            
+            sync_tick_last <= 0;
+            dac_ready <= 0;
         end
         else begin
-            // if both words transmitted
-            if (sys_sync_tick) begin
+            /* if both words have been transmitted dac_ready = 1
+                for 1 sys_clk cycle */
+            if (dac_ready) begin
                 data_l <= sample;
                 data_r <= sample;
                 sample_cnt <= sample_cnt + 1;
@@ -81,5 +86,7 @@ module top #(
     assign bck = sys_bck;
     assign lrck = sys_lrck;
     assign dout = sys_dout;
+
+    assign test_1 = dac_ready;
 
 endmodule

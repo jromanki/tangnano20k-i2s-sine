@@ -1,6 +1,5 @@
 module i2s_transmit # (
     parameter integer DATA_WIDTH = 32,
-    // parameter integer FS = (192 / 2)
     parameter integer FS = 256
     )(
     input clk,
@@ -34,8 +33,8 @@ module i2s_transmit # (
             bck_clk <= 0;
 
             lr_word <= 0;
-            shift_l <= 6'b0; // CHANGE TO 32
-            shift_r <= 6'b0; // CHANGE TO 32
+            shift_l <= 32'b0;
+            shift_r <= 32'b0;
             out_state <= 0;
             right_done <= 0;
         end
@@ -43,13 +42,13 @@ module i2s_transmit # (
             if (clk_counter < FS - 1) begin
                 lr_word_delayed <= lr_word;
 
-                // load new samples
+                /* load new samples */
                 if (lr_word && !lr_word_delayed) begin
                     shift_l <= din_l;
                     shift_r <= din_r;
                 end
 
-                // after completing right word transfer signalize
+                /* after completing right word transfer signalize */
                 if (lr_word && (clk_counter == (DATA_WIDTH * 4))) begin
                     right_done <= 1;
                 end
@@ -57,23 +56,25 @@ module i2s_transmit # (
                     right_done <= 0;
                 end
 
-                if (div_3_counter < 3 - 1) begin
+                // if (div_3_counter < 3 - 1) begin
+                /* make bck last 2*2 sys_clk cycles */
+                if (div_3_counter < 2 - 1) begin
                     div_3_counter <= div_3_counter + 1;
 
                 end
                 else begin
                     if (bck_clk == 1) begin
                         if (bit_counter < DATA_WIDTH) begin
-                            // shift out MSB
+                            /* shift out sample MSB */
                             if (!lr_word) begin
                                 // left word
                                 out_state <= shift_l[31];
-                                shift_l <= {shift_l[30:0], 1'b0};
+                                shift_l <= shift_l << 1;
                             end
                             else begin
                                 // right word
                                 out_state <= shift_r[31];
-                                shift_r <= {shift_r[30:0], 1'b0};
+                                shift_r <= shift_r << 1;
                             end
                         end
                         else begin

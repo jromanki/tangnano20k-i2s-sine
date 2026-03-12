@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 DEBUG = False
 
-FILENAME = "wave-rom.vh"
+FILENAME = "src/dds/wave-rom.vh"
 LINES = 64
 BITS_IN_LINE = 256
 BIT_DEPTH = 32
