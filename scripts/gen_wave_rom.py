@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 DEBUG = False
 
 FILENAME = "src/dds/wave-rom"
-LINES = 64
+LINES = 128
 BITS_IN_LINE = 256
 BIT_DEPTH = 32
-NUM_OF_FILES = 2
+NUM_OF_FILES = 1
 
 TOTAL_SAMPLE_NUM = int(LINES * (BITS_IN_LINE / BIT_DEPTH))
 
