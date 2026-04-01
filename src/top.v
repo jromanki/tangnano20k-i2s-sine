@@ -15,7 +15,9 @@ module top #(
     output      lrck,
     output      dout,
 
-    output      test_1,
+    output      [5:0] led,
+
+    output      test_1
 );
 
     `define MAX_VAL 32'h7FFFFFFF
@@ -58,11 +60,16 @@ module top #(
     reg dac_ready;
     reg [11:0] sample_cnt;
 
+    reg [21:0] led_timer;
+    reg led_on;
+
     /* simple power on reset */
     reg [15:0] por_counter = 0;
     wire auto_rst = !por_counter[15];
     always @(posedge sys_clk) begin
-        if (auto_rst) por_counter <= por_counter + 1;
+        if (auto_rst) begin
+            por_counter <= por_counter + 1;
+        end
     end
 
     always @ (posedge sys_clk) begin
@@ -70,19 +77,24 @@ module top #(
         /* make dac_ready detect rising edge of sync_tick */
         sync_tick_last <= sys_sync_tick;
         dac_ready <= (sys_sync_tick && !sync_tick_last);
+        note_msg_ready <= sys_spi_ready;
 
         if (btn) begin
             sample_cnt <= 0;
             sync_tick_last <= 0;
             dac_ready <= 0;
             sys_phase_inc <= 0;
+            led_on <= 0;
+            led_timer <= 0;
         end
         else begin
-            if (sys_spi_ready) begin
-                // sys_phase_inc <= sys_spi_data;
+            if (note_msg_ready) begin
+                sys_phase_inc <= sys_spi_data;
+                led_timer <= 22'h3FFFFF;
+                led_on <= 1;
             end
             else if (btn2) begin
-                sys_phase_inc <= 41995;
+                sys_phase_inc <= 9544;
             end
 
 
@@ -91,6 +103,14 @@ module top #(
             if (dac_ready) begin
                 data_l <= sample;
                 data_r <= sample;
+            end
+
+            if (led_timer > 0) begin
+                led_timer <= led_timer - 1;
+                led_on <= 1;
+            end
+            else begin
+                led_on <= 0;
             end
         end
     end
@@ -107,6 +127,7 @@ module top #(
 
     reg [31:0] sys_spi_data;
     wire sys_spi_ready;
+    reg note_msg_ready;
 
     spi_parser spi_parser(
         .clk(sys_clk),
@@ -122,6 +143,9 @@ module top #(
     assign bck = sys_bck;
     assign lrck = sys_lrck;
     assign dout = sys_dout;
+
+    assign led[5] = led_on;
+    assign led[4:0] = 5'b00000;
 
     assign test_1 = sys_spi_ready;
 

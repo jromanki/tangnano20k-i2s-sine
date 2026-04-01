@@ -6,7 +6,7 @@ module spi_parser (
 	input wire mosi,
 	input wire cs,
 
-    output reg data_ready,
+    output wire data_ready,
     output reg [31:0] data_out
 );
 
@@ -14,9 +14,12 @@ module spi_parser (
 	wire sys_is_ready;
 	reg sys_spi_reset;
 	wire [39:0] sys_recv_data;
+	reg sys_data_ready;
+	reg sys_data_ready_d1;
 
 	spi_module #(
         .SPI_MASTER(1'b0),
+		.INVERT_DATA_ORDER(1'b0),
         .SPI_WORD_LEN(40)
     ) dut (
         .master_clock(clk),
@@ -39,14 +42,20 @@ module spi_parser (
 			sys_spi_reset <= 1'b1;
 		end
 		else begin
-			if (sys_processing == 0) begin
-				data_out <= sys_recv_data[31:0];
-			end
 			sys_spi_reset <= 1'b0;
-        	// data_ready <= !sys_processing;
+			if (sys_processing == 0) begin
+				// data_out <= sys_recv_data[39:8];
+				data_out <= sys_recv_data[31:0];
+				sys_data_ready <= 1'b1;
+			end
+			else begin
+				sys_data_ready <= 1'b0;
+			end
+
+			sys_data_ready_d1 <= sys_data_ready;
 		end
 	end
 
-	assign data_ready = !sys_processing;
+	assign data_ready = sys_data_ready_d1;
 
 endmodule

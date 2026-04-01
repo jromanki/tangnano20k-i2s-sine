@@ -4,7 +4,7 @@ CLK_FREQ = 49.5 * 10**6
 BIT_DEPTH = 32
 
 def get_phase_inc(freq: float):
-    return round((freq * 2**BIT_DEPTH) / CLK_FREQ)
+    return round(((freq * 2**BIT_DEPTH) / CLK_FREQ) / 2)
 
 def main():
     phase_inc_arr = []
@@ -28,6 +28,7 @@ def main():
 
     c_array = "uint32_t midi_to_phase_inc_arr[] = { " + ", ".join(f"{n}" for n in phase_inc_arr) + " };"
     print(c_array)
+    print(f"A note (110 Hz) phase inc = {phase_inc_arr[45+12]}")
 
 if __name__ == '__main__':
     main()
