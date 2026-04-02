@@ -56,6 +56,8 @@ module top #(
         .sync_tick(sys_sync_tick)
     );
 
+    wire sys_note_reset;
+
     reg sync_tick_last;
     reg dac_ready;
     reg [11:0] sample_cnt;
@@ -89,11 +91,24 @@ module top #(
         end
         else begin
             if (note_msg_ready) begin
-                sys_phase_inc <= sys_spi_data;
-                led_timer <= 22'h3FFFFF;
-                led_on <= 1;
+                if (sys_spi_msg_type == 3'b001) begin
+                    /* note on message */
+                    sys_phase_inc <= sys_spi_data;
+                    sys_note_reset <= 0;
+                    led_timer <= 22'h3FFFFF;
+                    led_on <= 1;
+                end
+
+                if (sys_spi_msg_type == 3'b000) begin
+                    /* note off message */
+                    sys_phase_inc <= 0;
+                    sys_note_reset <= 1;
+                    led_timer <= 22'h3FFFFF;
+                    led_on <= 1;
+                end
             end
             else if (btn2) begin
+                /* test mode */
                 sys_phase_inc <= 9544;
             end
 
@@ -119,13 +134,15 @@ module top #(
 
     sine_dds sine_dds(
         .clk(sys_clk),
-        .rst(btn),
+        .rst(btn | sys_note_reset),
         .tick(sys_sync_tick),
         .phase_inc(sys_phase_inc),
         .value(sample)
     );
 
     reg [31:0] sys_spi_data;
+    reg [4:0] sys_spi_target_osc;
+    reg [2:0] sys_spi_msg_type;
     wire sys_spi_ready;
     reg note_msg_ready;
 
@@ -136,7 +153,9 @@ module top #(
         .mosi(mosi),
         .cs(cs),
         .data_ready(sys_spi_ready),
-        .data_out(sys_spi_data)
+        .data_out(sys_spi_data),
+        .target_osc_out(sys_spi_target_osc),
+        .msg_type_out(sys_spi_msg_type)
     );
 
     assign sck = sys_clk;

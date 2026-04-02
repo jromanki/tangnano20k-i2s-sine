@@ -7,7 +7,9 @@ module spi_parser (
 	input wire cs,
 
     output wire data_ready,
-    output reg [31:0] data_out
+    output reg [31:0] data_out,
+    output reg [4:0] target_osc_out,
+    output reg [2:0] msg_type_out
 );
 
 
@@ -77,6 +79,8 @@ module spi_parser (
             /* word complete */
             if (sys_processing_d1 && !sys_processing) begin
                 data_out <= sys_recv_data[31:0];
+                target_osc_out <= sys_recv_data[36:32];
+                msg_type_out <= sys_recv_data[39:37];
                 data_ready <= 1'b1;
             end else begin
                 data_ready <= 1'b0;

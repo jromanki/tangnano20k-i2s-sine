@@ -21,5 +21,5 @@ nextpnr-himbaechel -v --debug --json $OUT_DIR/top-synth.json --write $OUT_DIR/to
 gowin_pack -d GW2A-18C -o $OUT_DIR/top.fs $OUT_DIR/top.json &> /dev/null
 
 
-# openFPGALoader --ftdi-serial $SERIAL_NUM -f $OUT_DIR/top.fs
-openFPGALoader --ftdi-serial $SERIAL_NUM $OUT_DIR/top.fs
+openFPGALoader --ftdi-serial $SERIAL_NUM -f $OUT_DIR/top.fs
+# openFPGALoader --ftdi-serial $SERIAL_NUM $OUT_DIR/top.fs
